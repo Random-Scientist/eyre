@@ -532,6 +532,24 @@ impl Drop for Report {
         }
     }
 }
+#[cfg(feature = "rancor")]
+mod rancor_support {
+    use crate::Report;
+
+    impl rancor::Source for Report {
+        fn new<T: core::error::Error + Send + Sync + 'static>(source: T) -> Self {
+            Report::from_std(source)
+        }
+    }
+    impl rancor::Trace for Report {
+        fn trace<R>(self, trace: R) -> Self
+        where
+            R: core::fmt::Debug + core::fmt::Display + Send + Sync + 'static,
+        {
+            self.wrap_err(trace)
+        }
+    }
+}
 
 struct ErrorVTable {
     object_drop: unsafe fn(OwnedPtr<ErrorImpl<()>>),
